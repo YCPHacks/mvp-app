@@ -3,10 +3,6 @@ const mysqlx = require('@mysql/xdevapi');
 
 module.exports = async function (fastify, options) {
   fastify.get('/', async function (request, reply) {
-    //reply.code(200);
-
-    //return { key: 'value' };
-
     const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
     const statement = "CALL Select_Hardware_Items()";
     const result = await session.sql(statement).execute();
