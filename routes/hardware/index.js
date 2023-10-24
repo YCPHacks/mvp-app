@@ -29,5 +29,30 @@ module.exports = async function (fastify, options) {
     return scheme;
   });
 
+  fastify.get('/:id', async function (request, reply) {
+    const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
+    await session.sql('SET @id = ?;')
+                    .bind(request.params.id)
+                    .execute();
+    const statement = "CALL Select_Single_Hardware_Items(@id)";
+    const result = await session.sql(statement).execute();
+    const hardware = await result.fetchOne();
+    const scheme = {
+      id: hardware[0],
+      name: hardware[1],
+      tag: hardware[2],
+      category: hardware[3],
+      status:  hardware[4],
+      time:  hardware[5],
+      renter_id:  hardware[6]
+    }
+
+    await session.close();
+
+    return scheme;
+  });
+
+  
+
 
 }
