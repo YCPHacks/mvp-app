@@ -4,19 +4,14 @@ const mysqlx = require('@mysql/xdevapi');
 module.exports = async function (fastify, options) {
   fastify.get('/', async function (request, reply) {
     const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
-    const statement = "CALL Select_Hardware_Items()";
+    const statement = "CALL list_all_hardware_items()";
     const result = await session.sql(statement).execute();
+    const columns = await result.getColumns();
     const hardware = await result.fetchAll();
-    const data = hardware.map((item) => {
-        return{
-          id: item[0],
-          name: item[1],
-          tag: item[2],
-          category: item[3],
-          status:  item[4],
-          time:  item[5],
-          renter_id:  item[6]
-        }
+    const data = hardware.map(row => {
+      return row.reduce((res, value, i) => {
+        return Object.assign({}, res, { [columns[i].getColumnLabel()]: value })
+      }, {});
     });
 
     await session.close();
@@ -34,18 +29,13 @@ module.exports = async function (fastify, options) {
     await session.sql('SET @id = ?;')
                     .bind(request.params.id)
                     .execute();
-    const statement = "CALL Select_Single_Hardware_Items(@id)";
+    const statement = "CALL list_single_hardware_item(@id)";
     const result = await session.sql(statement).execute();
+    const columns = await result.getColumns();
     const hardware = await result.fetchOne();
-    const scheme = {
-      id: hardware[0],
-      name: hardware[1],
-      tag: hardware[2],
-      category: hardware[3],
-      status:  hardware[4],
-      time:  hardware[5],
-      renter_id:  hardware[6]
-    }
+    const scheme = hardware.reduce((res, value, i) => {
+        return Object.assign({}, res, { [columns[i].getColumnLabel()]: value })
+      }, {});
 
     await session.close();
 
