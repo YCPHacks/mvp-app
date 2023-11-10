@@ -42,7 +42,62 @@ module.exports = async function (fastify, options) {
     return scheme;
   });
 
-  
+  fastify.post('/', async function (request, reply) {
+    const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
+    await session.sql('SET @name = ?;')
+                    .bind(request.body.name)
+                    .execute();
+    await session.sql('SET @tag = ?;')
+                    .bind(request.body.tag)
+                    .execute();
+    await session.sql('SET @category = ?;')
+                    .bind(request.body.category)
+                    .execute();
+    const statement = "CALL create_hardware_item(@name, @tag, @category)";
+    const result = await session.sql(statement).execute();
+    const hardware = await result.fetchOne();
+    console.log(hardware);
+
+    await session.close();
+
+    return hardware;
+  });
+
+  fastify.patch('/:id', async function (request, reply) {
+    const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
+    await session.sql('SET @id = ?;')
+                    .bind(request.params.id)
+                    .execute();
+    await session.sql('SET @name = ?;')
+                    .bind(request.body.name ?? null)
+                    .execute();
+    await session.sql('SET @tag = ?;')
+                    .bind(request.body.tag ?? null)
+                    .execute();
+    await session.sql('SET @category = ?;')
+                    .bind(request.body.category ?? null)
+                    .execute();
+    const statement = "CALL update_hardware_item(@id, @name, @tag, @category)";
+    const result = await session.sql(statement).execute();
+    const hardware = await result.fetchOne();
+
+    await session.close();
+
+    return hardware;
+  });
+
+  fastify.delete('/:id', async function (request, reply) {
+    const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
+    await session.sql('SET @id = ?;')
+                    .bind(request.params.id)
+                    .execute();
+    const statement = "CALL delete_hardware_item(@id)";
+    const result = await session.sql(statement).execute();
+    const hardware = await result.fetchOne();
+    await session.close();
+
+    return hardware;
+  });
 
 
 }
