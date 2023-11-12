@@ -41,13 +41,21 @@ module.exports = async function (fastify, options) {
                         .execute();
         const statement = "CALL list_all_hardware_items_and_current_record(@search, @categories, @pageSize, @pageNumber)";
         const result = await session.sql(statement).execute();
+
         const columns = await result.getColumns();
         const rent_current = await result.fetchAll();
+
         const data = rent_current.map(row => {
             return row.reduce((res, value, i) => {
                 return Object.assign({}, res, { [columns[i].getColumnLabel()]: value })
             }, {});
         });
+
+        data.forEach((item) => {
+            if(item.status === null){
+              item.status = 'checked-in';
+            }
+          });
 
         await session.close();
 
