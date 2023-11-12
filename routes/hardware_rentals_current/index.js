@@ -4,13 +4,28 @@ const mysqlx = require('@mysql/xdevapi');
 module.exports = async function (fastify, options) {
     fastify.get('/', async function (request, reply) {
         const session = await mysqlx.getSession(process.env.MYSQLX_HARDWARE_DATABASE_URL);
-        const search = request.query.search ?? '';
+
+        // If request.query.categories is not an array, make it an array
+        if(request.query.categories && !Array.isArray(request.query.categories)){
+            request.query.categories = [request.query.categories];
+        }
+        
+        let categoryString = '[';
+        if(request.query.categories){
+            categoryString += request.query.categories.map(category => {
+                return `"${category}"`;
+            }).join(',');
+        }
+        categoryString += ']';
+
+
+        const search = request.query.search || '';
         //console.log(search);
-        const categories = request.query.categories ?? '[]';
+        const categories = categoryString || '[]';
         //console.log(categories);
-        const pageSize = request.query.pageSize ?? 20;
+        const pageSize = request.query.pageSize || 20;
         //console.log(pageSize);
-        const pageNumber = request.query.pageNumber ?? 1;
+        const pageNumber = request.query.pageNumber || 1;
         //console.log(pageNumber);
         await session.sql('SET @search = ?;')
                         .bind(search)
@@ -26,17 +41,12 @@ module.exports = async function (fastify, options) {
                         .execute();
         const statement = "CALL list_all_hardware_items_and_current_record(@search, @categories, @pageSize, @pageNumber)";
         const result = await session.sql(statement).execute();
+        const columns = await result.getColumns();
         const rent_current = await result.fetchAll();
-        const data = rent_current.map((item) => {
-            return{
-                id: item[0],
-                name: item[1],
-                tag: item[2],
-                category: item[3],
-                status: item[4] ?? 'checked-in',
-                attendee_name: item[5],
-                date: item[6],
-            }
+        const data = rent_current.map(row => {
+            return row.reduce((res, value, i) => {
+                return Object.assign({}, res, { [columns[i].getColumnLabel()]: value })
+            }, {});
         });
 
         await session.close();
