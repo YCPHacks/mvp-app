@@ -2,7 +2,7 @@
 module.exports = async function hardwareRoutes(fastify, options) {
     async function listHardware(request, reply) {
         //name of stored procedure to be called
-        const statement = "CALL list_all_hardware_items"
+        const statement = "CALL list_hardware_inventory_items"
         //establish connection to database
         const connection = await fastify.mysql.getConnection()
         //query stored procedure to get all hardware items
@@ -11,9 +11,6 @@ module.exports = async function hardwareRoutes(fastify, options) {
         //release connection from database
         connection.release()
 
-        // const {skip, limit, name} = request.query
-        // const filter = name ? { name: new RegExp(name, 'i') } : {}
-        // const hardware = await rows[0].find(filter, { limit, skip}).toArray()
         const length = data.length
 
         return {length, data}
@@ -28,6 +25,7 @@ module.exports = async function hardwareRoutes(fastify, options) {
         //         200: fastify.getSchema('schema:hardware:item:response')
         //     }
         // },
+        preValidation: fastify.authenticate,
         handler: listHardware
     })
 
