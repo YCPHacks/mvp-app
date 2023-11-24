@@ -1,0 +1,18 @@
+{
+    "type": "object",
+    "$id": "schema:dotenv",
+    "required": ["MYSQL_HARDWARE_DATABASE_URL"],
+    "properties": {
+        "NODE_ENV": {
+          "type": "string",
+          "default": "development"
+        },
+        "PORT": {
+          "type": "integer",
+          "default": 3000
+        },
+        "MYSQL_HARDWARE_DATABASE_URL": {
+          "type": "string"
+    }
+  }
+}
