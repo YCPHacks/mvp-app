@@ -25,13 +25,13 @@ module.exports = async function hardwareRoutes(fastify, options) {
 
     async function createHardware(request, reply){
         //get the label for the body of the HTTP request
-        const label = request.body.label;
+        const {name, label, category} = request.body
         //name of stored procedure to be called
-        const statement = 'CALL create_hardware_inventory_item(?);';
+        const statement = 'CALL create_hardware_inventory_item_v2(?,?,?);';
         //establish connection to database
         const connection = await fastify.mysql.getConnection()
         //execute prepared statement using label requested from HTTP request body
-        connection.execute(statement, [label]);
+        connection.execute(statement, [name, label, category]);
         //release connection from database
         connection.release()
 
@@ -77,13 +77,12 @@ module.exports = async function hardwareRoutes(fastify, options) {
     async function deleteHardware(request, reply) {
         //get the id for the HTTP request
         const id = request.params.id
-        const time_of_deletion = new Date()
         //name of stored procedure to be called
-        const statement = 'CALL delete_hardware_inventory_item(?, ?);'
+        const statement = 'CALL delete_hardware_inventory_item_v2(?);'
         //establish connection to database
         const connection = await fastify.mysql.getConnection()
         //execute prepared statement using id requested from HTTP request
-        connection.execute(statement, [id, time_of_deletion])
+        connection.execute(statement, [id])
         //release connection from database
         connection.release()
 
@@ -93,8 +92,6 @@ module.exports = async function hardwareRoutes(fastify, options) {
     fastify.route({
         method: 'DELETE',
         url: '/:id',
-        handler: async function deleteHardware(request, reply) {
-            reply.code(204)
-        }
+        handler: deleteHardware
     })
 }
