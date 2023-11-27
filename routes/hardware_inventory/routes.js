@@ -48,7 +48,7 @@ module.exports = async function hardwareRoutes(fastify, options) {
         //get the id for the HTTP request
         const id = request.params.id
         //name of stored procedure to be called
-        const statement = 'CALL read_hardware_inventory_item(?);'
+        const statement = 'CALL read_hardware_inventory_item_v2(?);'
         //establish connection to database
         const connection = await fastify.mysql.getConnection()
         //execute prepared statement using id requested from HTTP request
@@ -57,7 +57,7 @@ module.exports = async function hardwareRoutes(fastify, options) {
         //release connection from database
         connection.release()
 
-        return {data}
+        return {data} 
     }
 
     fastify.route({
