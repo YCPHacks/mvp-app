@@ -66,12 +66,11 @@ module.exports = async function hardwareRoutes(fastify, options) {
         handler: readHardware
     })
 
+
     fastify.route({
         method: 'PUT',
         url: '/:id',
-        handler: async function updateHardware(request, reply) {
-            reply.code(204)
-        }
+        handler: updateHardware
     })
 
     async function deleteHardware(request, reply) {
