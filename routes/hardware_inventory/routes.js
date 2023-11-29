@@ -2,11 +2,11 @@
 module.exports = async function hardwareRoutes(fastify, options) {
     async function listHardware(request, reply) {
         //name of stored procedure to be called
-        const statement = "CALL list_hardware_inventory_items"
+        const statement = "CALL list_hardware_inventory_items_v2"
         //establish connection to database
         const connection = await fastify.mysql.getConnection()
         //query stored procedure to get all hardware items
-        const [rows] = await connection.query(statement)
+        const [rows] = await connection.execute(statement)
         const data = rows[0]
         //release connection from database
         connection.release()
@@ -67,11 +67,11 @@ module.exports = async function hardwareRoutes(fastify, options) {
     })
 
 
-    fastify.route({
-        method: 'PUT',
-        url: '/:id',
-        handler: updateHardware
-    })
+    // fastify.route({
+    //     method: 'PUT',
+    //     url: '/:id',
+    //     handler: updateHardware
+    // })
 
     async function deleteHardware(request, reply) {
         //get the id for the HTTP request
